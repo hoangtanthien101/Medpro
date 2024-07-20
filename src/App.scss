@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.body {
+  scroll-behavior: smooth;
+}
+
+.selectAntd {
+  background: transparent;
+  border: none;
+  .ant-select-selector {
+    width: 200px;
+    border: none !important;
+  }
+}
+
+.events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  // background-color: #e8f2f7;
+}
+
+.events .ant-badge-status {
+  width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.notes-month {
+  font-size: 28px;
+  text-align: center;
+}
+
+.notes-month section {
+  font-size: 28px;
+}
+
+.boxHover {
+  border-radius: 8px;
+  box-shadow: 4px 8px 30px 0 rgba(177, 196, 218, .35);
+  height: fit-content;
+  transition: all .3s ease-in-out;
+  width: 100%;
+
+  &:hover {
+    cursor: pointer !important;
+    box-shadow: 0 4px 30px 0 rgba(116, 157, 206, .2);
+    // transform: translateY(-.1rem);
+    border: 1px solid #00b5f1 !important;
+  }
+}
+
+.boxNotHover {
+  border-radius: 8px;
+  box-shadow: 4px 8px 30px 0 rgba(177, 196, 218, .35);
+  height: fit-content;
+  transition: all .3s ease-in-out;
+  width: 100%;
+}

@@ -1,0 +1,379 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Form, Select, Input, Modal, Button } from "antd";
+import { EyeInvisibleOutlined, EyeTwoTone, PhoneFilled, PhoneOutlined, PhoneTwoTone } from "@ant-design/icons";
+import AccountFactories from "../../services/AccountFactories";
+import { toast } from "react-toastify";
+import { ToastNotiError } from "../../utils/Utils";
+import { useTranslation } from "react-i18next";
+import Message from "../../components/UI/Message/Message";
+import OTPInput from "react-otp-input";
+import 'react-phone-input-2/lib/style.css'
+import { onSignUpPhoneNumberOtp } from "../../services/FirebaseService";
+import PhoneInput from "react-phone-input-2";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../../firebase";
+const Register = (props) => {
+  const [userInput, setUserInput] = useState({
+    phone: "",
+    password: "",
+  });
+  const [open, setIsOpen] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [loadingOtp, setLoadingOtp] = useState(false)
+  const { t } = useTranslation()
+  useEffect(() => {
+    setIsOpen(props.isModalOpen)
+  }, [props.isModalOpen])
+  const handleCancel = () => {
+    props.onClose();
+  };
+  const [showMessage, setShowMessage] = useState({
+    status: false,
+    type: '',
+    content: '',
+  })
+
+  const changeMessage = () => {
+    setShowMessage({
+      status: false,
+      type: '',
+      content: '',
+    })
+  }
+
+  const createErrorMessage = (msg) => {
+    setShowMessage({ status: true, type: 'error', content: msg })
+  }
+
+  const inputChangeHandler = (event) => {
+    setUserInput((prevState) => {
+      return {
+        ...prevState,
+        [event.target.name]: event.target.value,
+      };
+    });
+  };
+
+  const navigator = useNavigate()
+
+  const validateUserInputPhone = (userInput) => {
+    if (!userInput?.phone) {
+      setShowMessage({
+        status: true,
+        type: "error",
+        content: `Số điện thoại không được để trống.`,
+      });
+      return false;
+    }
+    else if (userInput.phone.length != 11) {
+      setShowMessage({
+        status: true,
+        type: "error",
+        content: `Số điện thoại không đúng định dạng`,
+      });
+      return false;
+    }
+    return true;
+  }
+  const validateUserInput = (userInput) => {
+    if (!userInput.password) {
+      setShowMessage({
+        status: true,
+        type: "error",
+        content: `Hãy nhập mật khẩug`
+      });
+      return false;
+    }
+    else if (userInput.password.length > 32 || userInput.password.length < 6) {
+      setShowMessage({
+        status: true,
+        type: "error",
+        content: `Độ dài mật khẩu từ 6 đến 36 ký tự`
+      });
+      return false;
+    }
+    else if (!userInput.confirmPassword) {
+      setShowMessage({
+        status: true,
+        type: "error",
+        content: `Hãy nhập mật khẩu để xác nhận`
+      });
+      return false;
+    }
+    else if (userInput.password !== userInput.confirmPassword) {
+      setShowMessage({
+        status: true,
+        type: "error",
+        content: `Nhập đúng mật khẩu xác nhận`
+      });
+      return false;
+    }
+    return true;
+  }
+
+  const registerWithCredentials = async () => {
+    try {
+      const response = await AccountFactories.requestLSignUp(userInput);
+      if (response?._id) {
+        toast.success(t('Đăng ký tài khoản thành công'))
+        setLoading(false)
+        handleCancel()
+      }
+      else if (response) {
+        toast.error(response?.error)
+        setLoading(false)
+      }
+    } catch (error) {
+      ToastNotiError();
+      setLoading(false)
+    }
+
+    // try {
+    //   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    //   const user = userCredential.user;
+    //   if (user) {
+    //     // await sendEmailVerification(user);
+    //     const response = await AccountFactories.requestLSignUp(userInput);
+    //     if (response?.status === 200) {
+    //       toast.success('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.')
+    //     }
+    //     else{
+    //       toast.success('Có lỗi xảy ra. Vui lòng thử lại sau.')
+    //     }
+    //   }
+    //   navigator('/login');
+    // } catch (error) {
+    //   setShowMessage({
+    //     status: true,
+    //     type: "error",
+    //     content: `Đăng ký thất bại: Địa chỉ email đã được sử dụng`,
+    //   });
+    // }
+  }
+
+
+  const handleRegister = (event) => {
+    setLoading(true)
+    if (event) {
+      event.preventDefault();
+    }
+    if (validateUserInput(userInput)) {
+      registerWithCredentials(userInput);
+    } else
+      setLoading(false)
+  }
+
+
+  const [otp, setOtp] = useState();
+  const [showOtp, setShowOtp] = useState(false);
+  const [isValidateOtp, setValidateOtp] = useState(false);
+
+
+  function goBack() {
+    setShowOtp()
+    setOtp()
+    setLoadingOtp()
+  }
+
+  // function onCaptchVerify() {
+  //   if (!window.recaptchaVerifier) {
+  //     window.recaptchaVerifier = new RecaptchaVerifier(
+  //       auth,
+  //       "recaptcha-container",
+  //       {
+  //         size: "invisible",
+  //         callback: (response) => {
+  //           onSignup();
+  //         },
+  //         "expired-callback": () => { },
+  //       }
+  //     );
+  //   }
+  // }
+  // async function onSignup() {
+  //   setLoadingOtp(true);
+  //   if (validateUserInputPhone(userInput)) {
+  //     onCaptchVerify();
+  //     const appVerifier = window.recaptchaVerifier;
+  //     const formatPh = "+" + userInput.phone;
+  //     signInWithPhoneNumber(auth, formatPh, appVerifier)
+  //       .then((confirmationResult) => {
+  //         console.log("🚀 ~ .then ~ confirmationResult:", confirmationResult)
+  //         window.confirmationResult = confirmationResult;
+  //         toast.success("OTP sended successfully!");
+  //         setLoadingOtp(false);
+  //         setShowOtp(true);
+  //       })
+  //       .catch((error) => {
+  //         console.log(error);
+  //         setLoading(false);
+  //       });
+  //   }
+  // }
+
+  // function validateOtp() {
+  //   setLoadingOtp(true);
+  //   window.confirmationResult
+  //     .confirm(otp)
+  //     .then(async (res) => {
+  //       console.log("🚀 ~ .then ~ res:", res)
+  //       setLoading(false);
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //       setLoading(false);
+  //     });
+  // }
+
+  return (
+    <>
+      <Message
+        status={showMessage.status}
+        type={showMessage.type}
+        content={showMessage.content}
+        changeMessage={changeMessage}
+      />
+
+      <Modal
+        open={open}
+        onCancel={handleCancel}
+        width={500}
+        footer={[
+          <></>
+        ]}
+      >
+
+        <form onSubmit={handleRegister} className="w-full">
+          <div className='form-top flex flex-col gap-4 min-h-80'>
+            <h1 className="font-bold text-4xl text-blue  my-4" style={{ textAlign: 'center' }}>{t('Chào mừng đến với Medpro')}</h1>
+
+            {!showOtp &&
+              <>
+                <span className="text-xl text-center mt-5">Vui lòng cung cấp số điện thoại của bạn</span>
+                <div className=" w-[340px] flex flex-col gap-6 justify-center items-center mt-8 px-5 ml-14">
+                  <PhoneInput
+                    country={'vn'}
+                    value={userInput.phone}
+                    // containerStyle={{
+                    //   width: '100%'
+                    // }}
+                    onChange={(value) => {
+                      setUserInput((prevState) => {
+                        return {
+                          ...prevState,
+                          phone: value,
+                        };
+                      });
+                    }}
+                  />
+                  <div
+                    id="recaptcha-container"
+                    className="justify-center flex"
+                  ></div>
+
+                  <Button
+                    className="w-[300px]"
+                    onClick={() => onSignup()}
+                  >
+                    Lấy mã OTP
+                  </Button>
+                </div>
+              </>
+            }
+
+
+            {showOtp &&
+              <div className="otpBox flex flex-col justify-center items-center">
+                <span className="text-xl text-center my-5">Nhập mã OTP gửi về qua tin nhắn</span>
+                <OTPInput
+                  value={otp}
+                  onChange={setOtp}
+                  numInputs={6}
+                  renderSeparator={<span className="py-6 px-2">-</span>}
+                  renderInput={(props) => <Input  {...props} />}
+                  inputStyle={{ width: 50, border: '1px solid #00b5f1' }}
+                />
+                <div className="flex flex-col mt-6 gap-3 justify-between items-center w-full px-8">
+                  <Button
+                    className="w-full px-10 py-2 h-12 text-2xl font-bold bg-gray-light border border-1-blue2 text-gray-light hover:bg-blue transition-all duration-300 hover:text-[#fff] rounded-lg"
+                    disabled={loadingOtp}
+                    onClick={() => validateOtp()}
+                    loading={loadingOtp}
+                  >
+                    Xác thực OTP
+                  </Button>
+                  <Button
+                    className="w-full px-10 py-2 h-12 text-2xl font-medium bg-gray-light border border-1-blue2 text-gray-light hover:bg-blue transition-all duration-300 hover:text-[#fff] rounded-lg"
+                    style={{
+                      width: '100%',
+                      background: 'white',
+                      border: '1px solid #00b5f1',
+                      color: '#111'
+                    }}
+                    disabled={loading}
+                    onClick={() => goBack()}
+                    loading={loading}
+                  >
+                    Quay lại
+                  </Button>   </div>
+
+              </div>
+            }
+            {isValidateOtp &&
+              <>
+                <div className="mt-3">
+                  <Input.Password
+                    name="password"
+                    onChange={inputChangeHandler}
+                    placeholder="Enter your password"
+                    className='input-register'
+                    style={{
+                      width: '100%',
+                      borderRadius: 8,
+                      border: '2px solid #1fb6ff',
+                    }}
+                    iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <Input.Password
+                    name="confirmPassword"
+                    onChange={inputChangeHandler}
+                    placeholder="Confirm your password"
+                    className='input-register'
+                    style={{
+                      width: '100%',
+                      borderRadius: 8,
+                      border: '2px solid #1fb6ff',
+                    }}
+                    iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                  />
+                </div>
+              </>
+            }
+
+          </div>
+
+          {isValidateOtp &&
+            <div className='form-bottom mt-6'>
+              <div className="register-form__control">
+                <Button
+                  className="w-full px-10 py-2 h-12 text-2xl font-bold bg-blue2 text-gray-light hover:bg-blue transition-all duration-300 hover:text-[#fff] rounded-lg"
+                  type="submit"
+                  disabled={loading}
+                  onClick={(e) => handleRegister(e)}
+                  loading={loading}
+                >
+                  Đăng ký
+                </Button>
+              </div>
+            </div>
+          }
+        </form>
+      </Modal >
+    </>
+  );
+};
+
+export default Register;

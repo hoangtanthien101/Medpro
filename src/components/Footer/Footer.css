@@ -1,0 +1,55 @@
+.footer {
+  padding: 30px 100px 30px 150px;
+  background-color: fff;
+  position: relative;
+  bottom: 0px;
+  border-top: 1px solid #eaeaea;
+}
+
+.logo-wrap {
+  display: flex;
+  position: relative;
+  width: 150px;
+  height: 100px;
+}
+
+.logo {
+  width: 80%;
+}
+
+.logo-text {
+  position: absolute;
+  margin: 0;
+  bottom: 0;
+  left: 100%;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.address {
+  font-size: 14px;
+}
+
+.header {
+  margin: 0;
+  font-size: 18px;
+}
+
+.content {
+  margin-top: 10px;
+  line-height: 25px;
+}
+
+.footer-info {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+}
+.footer-info img {
+  width: 50px;
+  margin-right: 10px;
+}
+
+.footer-info p {
+  margin: 10px 0;
+}

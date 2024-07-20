@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* button, [type='button']{
+    background-color: #1fb6ff;
+    color: #fff;
+} */
+
+.ant-btn {
+  background-color: #1fb6ff;
+  color: aliceblue;
+}
+.ant-input-disabled {
+  color: #111;
+}
+:where(.css-dev-only-do-not-override-djtmh8).ant-select-single.ant-select-show-arrow .ant-select-selection-item,
+:where(.css-dev-only-do-not-override-djtmh8).ant-select-single.ant-select-show-arrow .ant-select-selection-placeholder {
+  padding-inline-end: 18px;
+  color: #111;
+}
+
+:where(.css-dev-only-do-not-override-djtmh8).ant-input-filled.ant-input-disabled,
+:where(.css-dev-only-do-not-override-djtmh8).ant-input-filled[disabled] {
+  color: #111;
+  background-color: rgba(0, 0, 0, 0.04);
+  border-color: #d9d9d9;
+  box-shadow: none;
+  cursor: default;
+  opacity: 1;
+}
+.ant-btn {
+  background-color: #1fb6ff;
+}
+.dynamic-delete-button {
+  position: relative;
+  top: 4px;
+  margin: 0 8px;
+  color: #999;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.dynamic-delete-button:hover {
+  color: #777;
+}
+.dynamic-delete-button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
